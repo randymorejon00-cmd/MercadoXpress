@@ -57,7 +57,7 @@
       "name": "Ver Directorio",
       "short_name": "Directorio",
       "description": "Explora todos los negocios",
-      "url": "./directory",
+      "url": "https://randymorejon00-cmd.github.io/MercadoXpress/#/directory",
       "icons": [{ "src": "web-app-manifest-192x192.png", "sizes": "192x192" }]
     },
     {
