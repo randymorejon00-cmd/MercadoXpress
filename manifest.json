@@ -1,33 +1,71 @@
 {
+  "id": "com.mercadoxpress.app",
   "name": "MercadoXpress",
   "short_name": "MercadoXpress",
-  "description": "Tu tienda online de confianza.",
+  "description": "Tu catálogo digital y marketplace local.",
+  "lang": "es-ES",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["window-controls-overlay", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F8FAFC",
   "theme_color": "#6366F1",
+  "categories": ["shopping", "business"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
-      "src": "/favicon-16x16.png",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
-    {
-      "src": "/favicon-32x32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
-    {
-      "src": "/web-icon - 192x192.png",
+      "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
-      "src": "/web-icon.png",
+      "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "MercadoXpress en Escritorio"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MercadoXpress en Móvil"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+mercadoxpress",
+      "url": "/?open=%s"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver Directorio",
+      "short_name": "Directorio",
+      "description": "Explora todos los negocios",
+      "url": "/directory",
+      "icons": [{ "src": "/web-app-manifest-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Mi Oficina",
+      "short_name": "Oficina",
+      "description": "Gestiona tus productos",
+      "url": "/dashboard",
+      "icons": [{ "src": "/web-app-manifest-192x192.png", "sizes": "192x192" }]
     }
   ]
 }
