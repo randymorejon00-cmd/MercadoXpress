@@ -49,7 +49,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+mercadoxpress",
-      "url": "?open=%s"
+      "url": "./?open=%s"
     }
   ],
   "shortcuts": [
