@@ -57,14 +57,14 @@
       "name": "Ver Directorio",
       "short_name": "Directorio",
       "description": "Explora todos los negocios",
-      "url": "directory",
+      "url": "./directory",
       "icons": [{ "src": "web-app-manifest-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Mi Oficina",
       "short_name": "Oficina",
       "description": "Gestiona tus productos",
-      "url": "dashboard",
+      "url": "./dashboard",
       "icons": [{ "src": "web-app-manifest-192x192.png", "sizes": "192x192" }]
     }
   ]
