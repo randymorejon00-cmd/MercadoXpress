@@ -49,7 +49,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+mercadoxpress",
-      "url": "./?open=%s"
+      "url": "?open=%s"
     }
   ],
   "shortcuts": [
@@ -57,7 +57,7 @@
       "name": "Ver Directorio",
       "short_name": "Directorio",
       "description": "Explora todos los negocios",
-      "url": "https://randymorejon00-cmd.github.io/MercadoXpress/#/directory",
+      "url": "./directory",
       "icons": [{ "src": "web-app-manifest-192x192.png", "sizes": "192x192" }]
     },
     {
