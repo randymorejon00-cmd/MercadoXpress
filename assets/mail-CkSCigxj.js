@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:assets/mail-CkSCigxj.js
 import{W as e}from"./index-nMhn_wbx.js";/**
+========
+import{Q as e}from"./index-D6tLBP16.js";/**
+>>>>>>>> 7b02ead90be04c20b36ba0d7085df3d8395d774d:assets/mail-DGglE7DL.js
  * @license lucide-react v0.462.0 - ISC
  *
  * This source code is licensed under the ISC license.
