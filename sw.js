@@ -1,5 +1,6 @@
 const DYNAMIC_CACHE = 'mx-dynamic-v1';
 const STATIC_CACHE = 'mx-static-v1';
+const IMAGE_CACHE = 'mx-images-v1';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -10,7 +11,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== DYNAMIC_CACHE && key !== STATIC_CACHE) {
+          if (![DYNAMIC_CACHE, STATIC_CACHE, IMAGE_CACHE].includes(key)) {
             return caches.delete(key);
           }
         })
@@ -21,12 +22,32 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Solo peticiones GET y que sean de nuestra app (http/https)
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) return;
 
   const url = new URL(event.request.url);
   
-  // Decidir en qué caja guardar según el tipo de archivo
+  // ESTRATEGIA: CACHE FIRST para Imágenes (especialmente Supabase)
+  if (event.request.destination === 'image' || url.href.includes('supabase.co/storage')) {
+    event.respondWith(
+      caches.open(IMAGE_CACHE).then((cache) => {
+        return cache.match(event.request).then((cachedResponse) => {
+          // Si existe en caché, la devolvemos y PUNTO. No hay petición de red.
+          if (cachedResponse) return cachedResponse;
+
+          // Si no existe, la buscamos y la guardamos
+          return fetch(event.request).then((networkResponse) => {
+            if (networkResponse.status === 200 || networkResponse.status === 0) {
+              cache.put(event.request, networkResponse.clone());
+            }
+            return networkResponse;
+          });
+        });
+      })
+    );
+    return;
+  }
+
+  // ESTRATEGIA: STALE-WHILE-REVALIDATE para JS, CSS y Fuentes (lo que ya tenías)
   const isStatic = event.request.destination === 'font' || 
                    url.pathname.includes('/assets/') || 
                    url.href.includes('fonts.gstatic.com');
@@ -35,37 +56,14 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Si está en caché, lo devolvemos de inmediato para velocidad máxima
-      if (cachedResponse) {
-        // Pero actualizamos la caché en segundo plano para la próxima vez
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
-            caches.open(cacheToUse).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
-        
-        return cachedResponse;
-      }
-
-      // Si no está en caché, vamos a la red
-      return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200) {
-          return networkResponse;
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse.status === 200) {
+          caches.open(cacheToUse).then((cache) => cache.put(event.request, networkResponse));
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(cacheToUse).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
         return networkResponse;
-      }).catch(() => {
-        // Si falla la red y es una navegación de página, devolvemos el index.html
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-        return null;
-      });
+      }).catch(() => null);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
