@@ -2,16 +2,23 @@ const CACHE_NAME = 'mx-app-v1';
 const IMAGE_CACHE_NAME = 'mx-images-v1';
 const STATIC_CACHE_NAME = 'mx-static-v1';
 
+// Solo lo estrictamente necesario para que la app arranque
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/logo-preview.png'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      // Usamos un bucle para que si uno falla, no rompa toda la instalación
+      return Promise.allSettled(
+        PRECACHE_ASSETS.map(url => 
+          cache.add(url).catch(err => console.warn(`Fallo al precachear: ${url}`, err))
+        )
+      );
+    })
   );
   self.skipWaiting();
 });
@@ -32,12 +39,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Solo manejar peticiones GET
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // 1. ESTRATEGIA PARA IMÁGENES (Cache First)
+  // 1. IMÁGENES (Cache First)
   if (
     event.request.destination === 'image' || 
     url.href.includes('supabase.co/storage/v1/object/public')
@@ -52,14 +58,14 @@ self.addEventListener('fetch', (event) => {
               cache.put(event.request, networkResponse.clone());
             }
             return networkResponse;
-          });
+          }).catch(() => null);
         });
       })
     );
     return;
   }
 
-  // 2. ESTRATEGIA PARA FUENTES Y SCRIPTS (Cache First)
+  // 2. FUENTES Y SCRIPTS (Cache First)
   if (
     event.request.destination === 'font' || 
     url.pathname.endsWith('.js') || 
@@ -77,33 +83,25 @@ self.addEventListener('fetch', (event) => {
               cache.put(event.request, networkResponse.clone());
             }
             return networkResponse;
-          });
+          }).catch(() => null);
         });
       })
     );
     return;
   }
 
-  // 3. ESTRATEGIA PARA EL RESTO (Stale-While-Revalidate)
-  // Corregido: Clonamos la respuesta ANTES de que se consuma
+  // 3. RESTO (Stale-While-Revalidate)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
-        // Verificar si la respuesta es válida para cachear
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-        
         return networkResponse;
-      }).catch(() => {
-        // Si falla la red, devolvemos lo que haya en caché (si hay)
-        return cachedResponse;
-      });
+      }).catch(() => cachedResponse);
 
       return cachedResponse || fetchPromise;
     })
