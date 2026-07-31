@@ -54,16 +54,17 @@ self.addEventListener('fetch', (event) => {
   
   const cacheToUse = isStatic ? STATIC_CACHE : DYNAMIC_CACHE;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse.status === 200) {
-          caches.open(cacheToUse).then((cache) => cache.put(event.request, networkResponse));
-        }
-        return networkResponse;
-      }).catch(() => null);
+event.respondWith(
+  caches.match(event.request).then((cachedResponse) => {
+    const fetchPromise = fetch(event.request).then((networkResponse) => {
+      if (networkResponse.status === 200) {
+        const responseClone = networkResponse.clone();
+        caches.open(cacheToUse).then((cache) => cache.put(event.request, responseClone));
+      }
+      return networkResponse;
+    }).catch(() => null);
 
-      return cachedResponse || fetchPromise;
-    })
+    return cachedResponse || fetchPromise;
+  })
   );
 });
